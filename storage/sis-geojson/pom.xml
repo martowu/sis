@@ -27,7 +27,7 @@
 
   <parent>
     <groupId>org.apache.sis</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>storage</artifactId>
     <version>2.0-SNAPSHOT</version>
   </parent>
 
@@ -35,12 +35,11 @@
   <!-- ===========================================================
            Module Description
        =========================================================== -->
-  <artifactId>storage</artifactId>
-  <packaging>pom</packaging>
-  <name>Apache SIS storage</name>
+  <groupId>org.apache.sis.storage</groupId>
+  <artifactId>sis-geojson</artifactId>
+  <name>Apache SIS GeoJSON storage</name>
   <description>
-    Group of modules for reading and writing data from/to various storages.
-    Storages are typically file formats or a database schemas.
+    Geojson DataStore implementation.
   </description>
 
 
@@ -72,26 +71,6 @@
     </developer>
   </developers>
   <contributors>
-    <contributor>
-      <name>Thi Phuong Hao Nguyen</name>
-      <email>nguyenthiphuonghao243@gmail.com</email>
-      <organization>VNSC</organization>
-      <organizationUrl>http://vnsc.org.vn</organizationUrl>
-      <timezone>+7</timezone>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </contributor>
-    <contributor>
-      <name>Minh Chinh Vu</name>
-      <email>chinhvm.uet.1995@gmail.com</email>
-      <organization>VNSC</organization>
-      <organizationUrl>http://vnsc.org.vn</organizationUrl>
-      <timezone>+7</timezone>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </contributor>
   </contributors>
 
 
@@ -100,21 +79,18 @@
        =========================================================== -->
   <build>
     <plugins>
-
-      <!-- Compile properties files into resources UTF files and
-           collect JAR files in <root>/target/binaries directory. -->
       <plugin>
-        <groupId>org.apache.sis.core</groupId>
-        <artifactId>sis-build-helper</artifactId>
-        <version>${sis.plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile-resources</goal>
-              <goal>collect-jars</goal>
-            </goals>
-          </execution>
-        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>
+                org.apache.sis.storage.geojson
+              </Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -125,53 +101,34 @@
        =========================================================== -->
   <dependencies>
     <dependency>
-      <groupId>org.apache.sis.core</groupId>
-      <artifactId>sis-metadata</artifactId>
+      <groupId>org.apache.sis.storage</groupId>
+      <artifactId>sis-storage</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sis.core</groupId>
-      <artifactId>sis-referencing</artifactId>
+      <artifactId>sis-cql</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.opengis</groupId>
-      <artifactId>geoapi-pending</artifactId>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.10.0</version>
     </dependency>
 
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>org.opengis</groupId>
-      <artifactId>geoapi-conformance</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.apache.sis.core</groupId>
-      <artifactId>sis-utility</artifactId>
+      <artifactId>sis-feature</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
-
-  <!-- ===========================================================
-           Sub-modules included in the build
-       =========================================================== -->
-  <modules>
-    <module>sis-storage</module>
-    <module>sis-shapefile</module>
-    <module>sis-xmlstore</module>
-    <module>sis-sqlstore</module>
-    <module>sis-netcdf</module>
-    <module>sis-geotiff</module>
-    <module>sis-geojson</module>
-    <module>sis-earth-observation</module>
-    <module>sis-gdal</module>
-  </modules>
+  <repositories>
+  </repositories>
 
 </project>
