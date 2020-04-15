@@ -22,25 +22,23 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import org.apache.sis.feature.FeatureComparator;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.geojson.GeoJSONParser;
+import org.apache.sis.internal.geojson.binding.GeoJSONFeatureCollection;
+import org.apache.sis.internal.geojson.binding.GeoJSONObject;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStores;
-import org.apache.sis.internal.geojson.binding.GeoJSONFeatureCollection;
-import org.apache.sis.internal.geojson.binding.GeoJSONObject;
-import org.apache.sis.internal.geojson.GeoJSONParser;
 import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.test.TestCase;
 import org.apache.sis.util.iso.Names;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.locationtech.jts.geom.*;
-import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.feature.PropertyType;
 import org.opengis.util.GenericName;
 
 /**
@@ -310,14 +308,15 @@ public class GeoJSONReadTest extends TestCase {
         final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
         ftb.setName(name);
         ftb.addAttribute(Double[][].class).setName("array");
-        ftb.addAttribute(geomClass).setName(AttributeConvention.GEOMETRY_PROPERTY).setCRS(CommonCRS.WGS84.normalizedGeographic()).addRole(AttributeRole.DEFAULT_GEOMETRY);
+        ftb.addAttribute(geomClass).setName("geometry").setCRS(CommonCRS.WGS84.normalizedGeographic()).addRole(AttributeRole.DEFAULT_GEOMETRY);
         return ftb.build();
     }
 
     private FeatureType buildGeometryFeatureType(String name, Class<?> geomClass) {
         final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
         ftb.setName(name);
-        ftb.addAttribute(geomClass).setName(AttributeConvention.GEOMETRY_PROPERTY).setCRS(CommonCRS.WGS84.normalizedGeographic()).addRole(AttributeRole.DEFAULT_GEOMETRY);
+        ftb.addAttribute(String.class).setName("fid").addRole(AttributeRole.IDENTIFIER_COMPONENT);
+        ftb.addAttribute(geomClass).setName("geometry").setCRS(CommonCRS.WGS84.normalizedGeographic()).addRole(AttributeRole.DEFAULT_GEOMETRY);
         return ftb.build();
     }
 
@@ -339,12 +338,7 @@ public class GeoJSONReadTest extends TestCase {
     }
 
     private void testFeatureTypes(FeatureType expected, FeatureType result) {
-        for(PropertyType desc : expected.getProperties(true)){
-            PropertyType td = result.getProperty(desc.getName().toString());
-            assertNotNull(td);
-            if(td instanceof AttributeType){
-                assertEquals(((AttributeType) td).getValueClass(), ((AttributeType)desc).getValueClass());
-            }
-        }
+        final FeatureComparator comparator = new FeatureComparator(expected, result);
+        comparator.compare();
     }
 }

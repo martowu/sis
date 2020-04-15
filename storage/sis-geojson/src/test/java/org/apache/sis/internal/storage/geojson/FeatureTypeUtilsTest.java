@@ -16,32 +16,25 @@
  */
 package org.apache.sis.internal.storage.geojson;
 
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
-import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.util.iso.SimpleInternationalString;
-import org.junit.Test;
-import org.opengis.util.FactoryException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import org.apache.sis.feature.FeatureComparator;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.geojson.FeatureTypeUtils;
 import org.apache.sis.internal.geojson.GeoJSONUtils;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.test.TestCase;
-
+import org.apache.sis.util.iso.SimpleInternationalString;
 import static org.junit.Assert.*;
-import org.opengis.feature.FeatureAssociationRole;
+import org.junit.Test;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.FeatureType;
-import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
-import org.opengis.util.GenericName;
+import org.opengis.util.FactoryException;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -168,7 +161,7 @@ public class FeatureTypeUtilsTest extends TestCase {
      * @param type
      * @return true if type has a geometry.
      */
-    public static boolean hasAGeometry(FeatureType type){
+    public static boolean hasAGeometry(FeatureType type) {
         for (PropertyType pt : type.getProperties(true)){
             if (AttributeConvention.isGeometryAttribute(pt)) return true;
         }
@@ -179,87 +172,11 @@ public class FeatureTypeUtilsTest extends TestCase {
     /**
      * Test field equality ignoring convention properties.
      */
-    public static boolean equalsIgnoreConvention(FeatureType type1, FeatureType type2){
-
-        if (type1 == type2) {
-            return true;
-        }
-
-        //check base properties
-        if (!Objects.equals(type1.getName(),        type2.getName()) ||
-            !Objects.equals(type1.getDefinition(),  type2.getDefinition()) ||
-            !Objects.equals(type1.getDesignation(), type2.getDesignation()) ||
-            !Objects.equals(type1.getDesignation(), type2.getDesignation()) ||
-            !Objects.equals(type1.isAbstract(),     type2.isAbstract())){
-            return false;
-        }
-
-        //check super types
-        final Set<? extends FeatureType> super1 = type1.getSuperTypes();
-        final Set<? extends FeatureType> super2 = type2.getSuperTypes();
-        if(super1.size() != super2.size()) return false;
-        final Iterator<? extends FeatureType> site1 = super1.iterator();
-        final Iterator<? extends FeatureType> site2 = super2.iterator();
-        while(site1.hasNext()){
-            if(!equalsIgnoreConvention(site1.next(), site2.next())) return false;
-        }
-
-        //check properties
-        final Set<GenericName> visited = new HashSet<>();
-        for (PropertyType pt1 : type1.getProperties(true)) {
-            visited.add(pt1.getName());
-            if (AttributeConvention.contains(pt1.getName())) continue;
-            try {
-                final PropertyType pt2 = type2.getProperty(pt1.getName().toString());
-                if (!equalsIgnoreConvention(pt1, pt2)) return false;
-            } catch (PropertyNotFoundException ex) {
-                return false;
-            }
-        }
-
-        for (PropertyType pt2 : type2.getProperties(true)) {
-            if (AttributeConvention.contains(pt2.getName()) || visited.contains(pt2.getName())) continue;
-            try {
-                final PropertyType pt1 = type1.getProperty(pt2.getName().toString());
-                if (!equalsIgnoreConvention(pt1, pt2)) return false;
-            } catch (PropertyNotFoundException ex) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean equalsIgnoreConvention(PropertyType pt1, PropertyType pt2){
-        if(pt1 instanceof FeatureAssociationRole){
-            if(pt2 instanceof FeatureAssociationRole){
-                final FeatureAssociationRole far1 = (FeatureAssociationRole) pt1;
-                final FeatureAssociationRole far2 = (FeatureAssociationRole) pt2;
-
-                 //check base properties
-                if (!Objects.equals(far1.getName(),        far2.getName()) ||
-                    !Objects.equals(far1.getDefinition(),  far2.getDefinition()) ||
-                    !Objects.equals(far1.getDesignation(), far2.getDesignation()) ||
-                    !Objects.equals(far1.getDesignation(), far2.getDesignation())){
-                    return false;
-                }
-
-                if(far1.getMinimumOccurs()!=far2.getMinimumOccurs()||
-                   far1.getMaximumOccurs()!=far2.getMaximumOccurs()){
-                    return false;
-                }
-
-                if(!equalsIgnoreConvention(far1.getValueType(), far2.getValueType())){
-                    return false;
-                }
-
-            }else{
-                return false;
-            }
-        }else if(!pt1.equals(pt2)){
-            return false;
-        }
-        return true;
+    public static void equalsIgnoreConvention(FeatureType type1, FeatureType type2) {
+        final FeatureComparator comparator = new FeatureComparator(type1, type2);
+        comparator.ignoredProperties.add(AttributeConvention.IDENTIFIER);
+        comparator.ignoredProperties.add("identifier");
+        comparator.compare();
     }
 
 }
